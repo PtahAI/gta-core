@@ -1,61 +1,4 @@
 
-local FirstSpawn = false
-
-local OscarBlip = nil
-
-function OnFirstSpawn()
-    Citizen.Wait(22000)
-
-    BeginTextCommandThefeedPost("STRING")
-    AddTextComponentSubstringPlayerName("What's up! I've got a job for you, Come to my house.")
-    ThefeedNextPostBackgroundColor(140)
-    EndTextCommandThefeedPostMessagetext("CHAR_OSCAR", "CHAR_OSCAR", false, 2, "Oscar", "INFO")
-    EndTextCommandThefeedPostTicker(true, true)
-
-    Citizen.Wait(3000)
-
-    SpawnBlip()
-end
-
-AddEventHandler("playerSpawned", function ()
-    if not FirstSpawn then
-        FirstSpawn = true
-
-        OnFirstSpawn()
-    else
-
-        if DoesBlipExist(OscarBlip) then
-            RemoveBlip(OscarBlip)
-            OscarBlip = nil
-        end
-    end
-end)
-
-AddEventHandler("onClientResourceStart", function(resourceName)
-    if GetCurrentResourceName() == resourceName then
-        if NetworkIsPlayerActive(PlayerId()) then
-            OnFirstSpawn()
-        end
-    end
-end)
-
-function SpawnBlip()
-    if OscarBlip then
-        RemoveBlip(OscarBlip)
-    end
-
-    OscarBlip = AddBlipForCoord(Config.OscarCoords.x, Config.OscarCoords.y, Config.OscarCoords.z)
-
-    SetBlipSprite(OscarBlip, 387)
-    SetBlipDisplay(OscarBlip, 2)
-    SetBlipScale(OscarBlip, 1.1)
-    SetBlipColour(OscarBlip, 5)
-    SetBlipAsShortRange(OscarBlip, false)
-    BeginTextCommandSetBlipName("STRING")
-    AddTextComponentString("Oscar")
-    EndTextCommandSetBlipName(OscarBlip)
-end
-
 function ToggleSound(State)
     if State then
         StartAudioScene("MP_LEADERBOARD_SCENE")
@@ -65,7 +8,6 @@ function ToggleSound(State)
 end
 
 function InitialSetup()
-
     SetManualShutdownLoadingScreenNui(true)
 
     ToggleSound(true)
@@ -76,7 +18,6 @@ function InitialSetup()
 end
 
 function ClearScreen()
-    
     SetCloudHatOpacity(0.01)
 
     HideHudAndRadarThisFrame()
@@ -87,15 +28,22 @@ end
 InitialSetup()
 
 Citizen.CreateThread(function()
-
     InitialSetup()
+
+    FreezeEntityPosition(PlayerPedId(), true)
 
     while GetPlayerSwitchState() ~= 5 do
         Citizen.Wait(0)
         ClearScreen()
     end
 
+    BeginTextCommandBusyspinnerOn("MP_SPINLOADING")
+    EndTextCommandBusyspinnerOn(4)
+
     ShutdownLoadingScreen()
+
+    BeginTextCommandBusyspinnerOn("MP_SPINLOADING")
+    EndTextCommandBusyspinnerOn(4)
 
     ClearScreen()
     Citizen.Wait(0)
@@ -111,6 +59,9 @@ Citizen.CreateThread(function()
         Citizen.Wait(0)
         ClearScreen()
     end
+
+    BeginTextCommandBusyspinnerOn("MP_SPINLOADING")
+    EndTextCommandBusyspinnerOn(4)
 
     local Timer = GetGameTimer()
 
@@ -131,6 +82,8 @@ Citizen.CreateThread(function()
                 ClearScreen()
             end
 
+            BusyspinnerOff()
+            FreezeEntityPosition(PlayerPedId(), false)
             break
         end
     end
